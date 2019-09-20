@@ -1,0 +1,138 @@
+#!/usr/bin/bash
+
+#Name: Nicholas Grosso
+#Professor: S.Miller
+#Program: Project 1
+
+#If the directory dosn't exist, we will create it
+	if [ ! -d /tmp/ngros09078 ];then							
+		mkdir /tmp/ngros09078
+	fi
+
+#Number of arguemnts is less than 1 (0), output error to stderr
+	if [ $# -lt 1 ];then									
+		echo Error: No arguments have been given >&2
+		exit 1;
+
+#There is one argument, read in file(s)/directorie(s) from it
+	elif [ $# == 1 ];then														
+		if [ -d $1 ];then
+			backupdir "$1"
+		elif [ -f $1 ];then
+			backupff "$1"
+		fi
+#If there is more than two arguments being passed through, assumed to be directory/file
+	elif [ $# -gt 1 ];then
+		while [ $# -gt 0 ];
+		if [ -d $1 ];then
+			backupdir "$1"
+			shift;
+		elif [ -f $1 ];then
+			backupff "$1"
+			shift;
+		fi
+
+	
+#There is more than 1 argument being read in
+	elif [ 1 -lt $# ];then									
+		x=0									
+		while [ x -lt $# ]
+		do
+			shift;
+			let x=x+1;
+		done;
+#The file does not exist, output error to stderr
+        else                                                                    
+                echo Error: File/Directory does not exist >&2
+                exit 1;
+	fi
+	
+	backupdir ()
+	{	
+	y=1
+
+#If the desiniation directory does not exist, we will tar the file
+	if [ ! -e /tmp/ngros09078 ];then							
+			mkdir /tmp/ngros09078
+			cp -R $1/* /tmp/ngros09078/							
+#Copy our arguement to our new destination directory
+	else
+#If backup version is the 10th or newer, we will tar it
+		if [[ 10 -lt $y && -e $1 ]];then								
+			let y=10							
+			while [ -d /tmp/ngros09078_backup$y ]
+			do
+				let y=y+1;
+			done
+			mkdir /tmp/ngros09078_backup$y
+			cp -R $1/* /tmp/ngros09078_backup$y
+			tar -cvf /tmp/ngros09078_backup$y.tar /tmp/ngros09078 --remove-files
+			echo ngros09078_backup$y.tar has been created
+			exit 0;
+#If the backup version is the 9th or older, we will tar it
+		elif [[ 10 -ge $y && -e $1 ]];then									
+			while [[ -d /tmp/ngros09078_backup0$y && -e $1 ]]
+			do
+				let y=y+1;
+			done
+			mkdir /tmp/ngros09078_backup0$y
+			cp -R $1/* /tmp/ngros09078_backup0$y
+			tar -cvf /tmp/ngros09078_backup0$y.tar /tmp/ngros09078 --remove-files
+			echo ngros09078_backup0$y.tar has been created
+			exit 0;
+		fi
+		else
+			echo Error could not be copied >&2
+			exit 1;
+	fi
+	}
+
+#Function in case the arguement is a file
+	function backupff ()
+	{
+	e=1
+
+	while read LINE; do
+#If its the first time the file is being read in to be backed up
+        	if [[ ! -e /tmp/ngros09078/$LINE && -f $LINE ]];then
+                	cp $LINE /tmp/ngros09078
+                	echo $LINE has been backed up
+#If its not the first time the file is being backed up
+		elif [[ -e /tmp/ngros09078/$LINE && -f $LINE ]]
+#If its the file is the 10th version or newer
+			if [[ 10 -lt $e && -e $LINE ]];then								
+			let y=10							
+			while [ -f /tmp/ngros09078_backup$e ]
+			do
+				let e=e+1;
+			done;
+			cp -R $LINE /tmp/ngros09078_backup$e
+			tar -cvf /tmp/ngros09078_backup$y.tar /tmp/ngros09078 --remove-files
+			echo ngros09078_backup$e.tar has been created
+			exit 0;
+#If there is a file 11th or older
+			else
+			while [[ -f /tmp/ngros09078_backup0$e && -e $LINE ]]
+			do
+				let e=e+1;
+			done;
+			cp $LINE /tmp/ngros09078_backup0$y
+			tar -cvf /tmp/ngros09078_backup$e.tar /tmp/ngros09078 --remove-files
+			echo ngros09078_backup0$e.tar has been created
+			exit 0;
+			fi
+		else
+			echo Could not copy $1 >&2
+			exit 1;
+		fi
+	done < "$1"
+	}
+
+
+
+
+
+
+
+
+
